@@ -167,13 +167,17 @@
         }
 
         textarea {
-            display: inline-block; /* 테이블 셀 안에서 중앙 정렬 */
+            display: inline-block;
             width: 98%;
             padding: 8px;
             border: 1px solid #e4b96f;
             border-radius: 5px;
-            resize: vertical; /*세로 조절*/
-            overflow: auto; /* 스크롤바 활성화 */
+            resize: none; /* 크기 조절 비활성화 */
+            overflow-wrap: break-word; /* 긴 단어도 줄바꿈 */
+            white-space: pre-wrap; /* 개행 포함 줄바꿈 */
+            word-break: break-word; /* 단어 잘라도 줄바꿈 */
+            overflow: hidden; /* 스크롤 숨김 */
+            min-height: 150px; /* 캡처에 충분한 높이 확보 */
         }
         
         /* 수량 칸 스타일 */
@@ -530,7 +534,16 @@
                     <th style="width: 20%;">각 항목에 해당 금액을 배정한 기준과 이유는?</th>
                 </tr>
                 <tr>
-                    <td><textarea id="reasonIndustry" rows="5" class="long-input" placeholder="자유롭게 작성하세요"></textarea></td>
+                    <td>
+                            <!-- 입력용 textarea -->
+                            <textarea id="reasonIndustry" rows="5" class="long-input" placeholder="자유롭게 작성하세요"></textarea>
+
+                            <!-- 캡처용 div (줄바꿈 처리용) -->
+                            <div id="reasonIndustry-display"
+                                style="white-space:pre-wrap; word-break:break-word; border:1px solid #e4b96f; padding:10px; border-radius:5px;
+                                background:white; min-height:150px; display:none;">
+                            </div>
+                    </td>
                 </tr>
             </table>
         </div>
@@ -699,37 +712,34 @@
                 });
             });
 
-            function saveAsImage() {
-                const captureElement = document.getElementById('capture-area');
+function saveAsImage() {
+    const textarea = document.getElementById("reasonIndustry");
+    const display = document.getElementById("reasonIndustry-display");
 
-                // 입력 필드 요소 가져오기
-                const companyInput = document.getElementById("company-name");
-                const studentInput = document.getElementById("student-name");
+    // textarea 내용을 div에 복사
+    display.textContent = textarea.value;
 
-                // 원래 placeholder 저장
-                const originalCompanyPlaceholder = companyInput.placeholder;
-                const originalStudentPlaceholder = studentInput.placeholder;
+    // textarea 숨기고 div 표시
+    textarea.style.display = "none";
+    display.style.display = "block";
 
-                // 캡처 전 placeholder 비우기
-                companyInput.placeholder = "";
-                studentInput.placeholder = "";
+    const captureElement = document.getElementById('capture-area');
 
-                html2canvas(captureElement, {
-                    backgroundColor: '#ffffff', // 배경 흰색 설정
-                    scale: 2, // 해상도 향상
-                    useCORS: true // 외부 이미지 문제 방지
-                }).then(canvas => {
-                    // 캡처 후 placeholder 원래대로 복원
-                    companyInput.placeholder = originalCompanyPlaceholder;
-                    studentInput.placeholder = originalStudentPlaceholder;
+    html2canvas(captureElement, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true
+    }).then(canvas => {
+        // 원래대로 복구
+        textarea.style.display = "block";
+        display.style.display = "none";
 
-                    // 이미지 저장
-                    const link = document.createElement('a');
-                    link.href = canvas.toDataURL("image/png");
-                    link.download = "창업비용계획서.png";
-                    link.click();
-                });
-            }
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL("image/png");
+        link.download = "창업비용계획서.png";
+        link.click();
+    });
+}
 
     // 항목별 상세 설명 데이터
     const detailsData = {
